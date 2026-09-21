@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&display=swap" rel="stylesheet">
+<script src="image-slot.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;background:#2b3036}
+  body{font-family:'Poppins',sans-serif;max-width:412px;margin:0 auto;background:#fff;color:#25313E;-webkit-font-smoothing:antialiased;box-shadow:0 0 50px rgba(0,0,0,.3);overflow-x:hidden}
+  ::selection{background:#80B368;color:#fff}
+  @keyframes leafFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(3deg)}}
+  @keyframes condFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes heroDriftA{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(24px,-30px) rotate(8deg)}100%{transform:translate(0,0) rotate(0)}}
+  @keyframes heroDriftB{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(-28px,22px) rotate(-10deg)}100%{transform:translate(0,0) rotate(0)}}
+  @keyframes heroDriftC{0%{transform:translate(0,0)}50%{transform:translate(18px,26px)}100%{transform:translate(0,0)}}
+  @keyframes heroPulse{0%,100%{opacity:.18;transform:scale(1)}50%{opacity:.4;transform:scale(1.12)}}
+  @keyframes heroSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+  @keyframes heroRise{0%{transform:translateY(20px);opacity:0}20%{opacity:.5}80%{opacity:.5}100%{transform:translateY(-60px);opacity:0}}
+  @keyframes dc-wipe{0%{opacity:0;clip-path:inset(0 100% 0 0);filter:blur(8px);transform:translateY(14px)}55%{filter:blur(0)}100%{opacity:1;clip-path:inset(0 0 0 0);filter:blur(0);transform:none}}
+  @keyframes dc-rise{0%{opacity:0;transform:translateY(38px) scale(.965)}100%{opacity:1;transform:none}}
+  @keyframes dc-pop{0%{opacity:0;transform:scale(.8) translateY(16px)}62%{opacity:1;transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
+  @keyframes dc-slideL{0%{opacity:0;transform:translateX(-46px)}100%{opacity:1;transform:none}}
+  @keyframes dc-fadeup{0%{opacity:0;transform:translateY(22px)}100%{opacity:1;transform:none}}
+</style>
+<script>
+(function(){
+  var EASE='cubic-bezier(.22,.78,.22,1)';
+  function reveal(el){ if(el.__shown) return; el.__shown=1; el.__reveal&&el.__reveal(); }
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ reveal(e.target); io.unobserve(e.target); } });
+  },{threshold:0.1, rootMargin:'0px 0px -5% 0px'});
+  function q(el,kind,delay){
+    if(el.__aq) return; el.__aq=1; var d=(delay||0);
+    if(kind==='wipe'){
+      el.style.opacity='0'; el.style.clipPath='inset(0 100% 0 0)'; el.style.filter='blur(6px)'; el.style.transform='translateY(10px)';
+      el.style.transition='opacity .9s '+EASE+' '+d+'s, clip-path 1s '+EASE+' '+d+'s, filter .9s '+EASE+' '+d+'s, transform .9s '+EASE+' '+d+'s';
+      el.__reveal=function(){ el.style.opacity='1'; el.style.clipPath='inset(0 0 0 0)'; el.style.filter='blur(0)'; el.style.transform='none'; };
+    } else {
+      el.style.opacity='0'; el.style.translate='0 40px';
+      el.style.transition='opacity .7s '+EASE+' '+d+'s, translate .75s '+EASE+' '+d+'s, transform .3s ease, box-shadow .3s ease';
+      el.__reveal=function(){ el.style.opacity='1'; el.style.translate='0 0'; };
+    }
+    io.observe(el);
+    setTimeout(function(){ reveal(el); },5000);
+  }
+  function build(){
+    document.querySelectorAll('section[data-screen-label] h1, section[data-screen-label] h2').forEach(function(h){ q(h,'wipe',0); });
+    var groups={}, gi=0;
+    document.querySelectorAll('[data-card]').forEach(function(c){
+      var p=c.parentElement; if(p.__gid==null){ p.__gid=++gi; } var k=p.__gid;
+      (groups[k]=groups[k]||[]).push(c);
+    });
+    Object.keys(groups).forEach(function(k){
+      groups[k].forEach(function(c,i){ q(c,'rise',i*0.08); });
+    });
+    document.querySelectorAll('button').forEach(function(b){
+      if(b.__hov) return; var cs=getComputedStyle(b);
+      if(cs.position==='absolute'||cs.position==='fixed') return;
+      b.__hov=1;
+      b.style.transition=(b.style.transition?b.style.transition+',':'')+'transform .2s ease, box-shadow .2s ease, filter .2s ease';
+      b.addEventListener('pointerenter',function(){ b.style.transform='translateY(-2px) scale(1.03)'; b.style.filter='brightness(1.04)'; });
+      b.addEventListener('pointerleave',function(){ b.style.transform=''; b.style.filter=''; });
+      b.addEventListener('pointerdown',function(){ b.style.transform='translateY(0) scale(.97)'; });
+      b.addEventListener('pointerup',function(){ b.style.transform='translateY(-2px) scale(1.03)'; });
+    });
+  }
+  var tries=0;
+  function init(){ build(); if(tries++<32) setTimeout(init,200); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(init,160);}); else setTimeout(init,160);
+})();
+</script>
+<style>
+/* ============ RESPONSIVE / MOBILE (always-on for this dedicated mobile page) ============ */
+@media (max-width: 99999px){
+  /* header */
+  header[data-screen-label="Header"] [style*="padding: 16px 40px; display: flex"]{flex-wrap:wrap!important;justify-content:center!important;padding:14px 18px!important;gap:14px!important}
+  header[data-screen-label="Header"] [style*="border: 1px solid rgb(226, 232, 236); border-radius: 12px"]{flex-wrap:wrap!important;justify-content:center!important}
+  header[data-screen-label="Header"] [style*="clip-path: polygon(52px 0px"]{clip-path:none!important;flex-wrap:wrap!important;justify-content:center!important;padding:12px 18px!important;gap:12px 18px!important}
+  /* hero */
+  [data-screen-label="Hero"]{background-size:100% auto!important;background-position:top center!important;min-height:730px!important}
+  [data-screen-label="Hero"] [style*="linear-gradient(90deg, rgb(0, 49, 105)"]{background:linear-gradient(180deg,rgba(0,49,105,.6),rgba(0,49,105,.82))!important}
+  [data-screen-label="Hero"] [style*="padding: 90px 32px 70px"]{padding:48px 22px 56px!important;min-height:420px!important}
+  /* multi-column grids → stack */
+  [style*="grid-template-columns: repeat(3, 1fr); gap: 22px"]{display:flex!important;grid-template-columns:none!important;overflow-x:auto!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important;-ms-overflow-style:none!important;transform:translateY(-28px)!important;padding-left:20px!important;padding-right:20px!important}
+  [style*="grid-template-columns: repeat(3, 1fr); gap: 22px"] > *{flex:0 0 calc(50% - 11px)!important;scroll-snap-align:start!important}
+  [style*="grid-template-columns: repeat(3, 1fr); gap: 22px"]::-webkit-scrollbar{display:none!important}
+  [data-screen-label="Statistics"] [style*="display: flex; align-items: center; gap: 16px"]{flex-direction:column!important;align-items:flex-start!important;gap:14px!important}
+  [style*="grid-template-columns: 0.92fr 1.3fr 0.92fr"]{grid-template-columns:1fr!important}
+  [style*="grid-template-columns: 0.66fr 1fr"]{grid-template-columns:1fr!important;gap:34px!important}
+  [style*="grid-template-columns: repeat(5, 1fr)"]{grid-template-columns:repeat(2, 1fr)!important}
+  [style*="grid-template-columns: repeat(3, 1fr); gap: 18px"]{display:flex!important;flex-direction:column!important}
+  [style*="grid-template-columns: repeat(3, 1fr); gap: 18px"] > *{min-width:0!important;width:100%!important}
+  [style*="grid-template-columns: 0.85fr 1.05fr"]{grid-template-columns:1fr!important;gap:30px!important}
+  [style*="grid-template-columns: 1.35fr 0.85fr 1.05fr 1.05fr"]{grid-template-columns:1fr 1fr!important;gap:30px!important}
+  /* testimonials: ~1 card per view */
+  [style*="width: calc(33.3333% - 14.6667px)"]{width:78%!important;min-width:240px!important}
+  /* horizontal padding */
+  [style*="padding: 0px 40px"]{padding-left:20px!important;padding-right:20px!important}
+  [data-screen-label="Footer"] [style*="padding: 46px 40px 40px"]{padding-left:22px!important;padding-right:22px!important}
+  [data-screen-label="Footer"] [style*="padding: 20px 40px"]{padding-left:22px!important;padding-right:22px!important}
+  /* image heights */
+  [data-screen-label="About"] [style*="min-height: 680px"]{min-height:430px!important}
+  [data-screen-label="Contact"] [style*="min-height: 520px"]{min-height:300px!important}
+  /* headings wrap (clear nowrap) */
+  section[data-screen-label] h1 span, section[data-screen-label] h2{white-space:normal!important}
+}
+@media (max-width: 99999px){
+  section[data-screen-label]:not([data-screen-label="Hero"]):not([data-screen-label="Statistics"]){padding-top:46px!important;padding-bottom:46px!important}
+  section[data-screen-label] h1{font-size:28px!important;line-height:1.2!important}
+  section[data-screen-label] h2{font-size:23px!important}
+  [data-screen-label="About"] [style*="font-size: 32px"]{font-size:22px!important}
+  [data-screen-label="Statistics"] [style*="font-size: 40px"]{font-size:30px!important}
+  [data-screen-label="Hero"] [style*="font-size: 18px"]{font-size:15px!important}
+  [style*="grid-template-columns: 1.35fr 0.85fr 1.05fr 1.05fr"]{grid-template-columns:1fr!important}
+  [style*="grid-template-columns: 1fr 1fr; gap: 13px"]{grid-template-columns:1fr!important}
+  [style*="grid-template-columns: 1fr 1fr; gap: 14px"]{grid-template-columns:1fr!important}
+}
+</style>
+<script>
+(function(){
+  var i=0;
+  function animateTo(el, to){
+    var from=el.scrollLeft, dist=to-from, start=null, dur=320;
+    function frame(ts){
+      if(start===null) start=ts;
+      var p=Math.min((ts-start)/dur,1);
+      var e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+      el.scrollLeft=from+dist*e;
+      if(p<1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  function tick(){
+    var sec=document.querySelector('[data-screen-label="Statistics"]');
+    var rail=sec&&sec.querySelector('[style*="repeat(3, 1fr)"]');
+    if(rail&&rail.children.length>=3&&!rail.__userTouched){
+      var card=rail.children[0];
+      var gap=22, w=card.getBoundingClientRect().width;
+      var max=rail.scrollWidth-rail.clientWidth;
+      i=(i+1)%rail.children.length;
+      var target=i===0?0:Math.min(i*(w+gap), max);
+      animateTo(rail, target);
+      if(!rail.__bound){ rail.__bound=1; rail.addEventListener('pointerdown',function(){ rail.__userTouched=1; }); }
+    }
+  }
+  setInterval(tick, 1700);
+})();
+</script>
+<script>
+(function(){
+  var LINKS=[['Home','#top'],['About Us','#about'],['Services','#conditions'],['Procedures','#approach'],['Testimonials','#testimonials'],['Contact Us','#contact']];
+  var chev='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39AC58" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+  var built=false, scrim, panel, root;
+  function build(){
+    if(built) return; built=true;
+    var st=document.createElement('style');
+    st.textContent='#mobDrawerRoot{position:fixed;inset:0;z-index:2000;visibility:hidden;pointer-events:none}#mobDrawerRoot .sc{position:absolute;inset:0;background:rgba(2,40,72,.5);opacity:0;transition:opacity .3s ease;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}#mobDrawerRoot .pn{position:absolute;top:0;right:0;height:100%;width:80%;max-width:300px;background:#fff;box-shadow:-12px 0 40px rgba(2,40,72,.28);transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;font-family:Poppins,sans-serif}#mobDrawerRoot.open{visibility:visible!important;pointer-events:auto!important}#mobDrawerRoot.open .sc{opacity:1!important}#mobDrawerRoot.open .pn{transform:translateX(0)!important}';
+    document.head.appendChild(st);
+    root=document.createElement('div'); root.id='mobDrawerRoot';
+    scrim=document.createElement('div'); scrim.className='sc';
+    panel=document.createElement('div'); panel.className='pn';
+    var nav=LINKS.map(function(l){return '<a href="'+l[1]+'" data-c="1" style="display:flex;align-items:center;justify-content:space-between;padding:15px 22px;font-size:16px;font-weight:600;color:#25313E;text-decoration:none;border-bottom:1px solid #f4f7fa">'+l[0]+chev+'</a>';}).join('');
+    panel.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #eef1f4"><img src="assets/logo.png" alt="Dr. Jaydeep Dalvi" style="height:38px;width:auto;display:block"/><button aria-label="Close" data-c="1" style="width:38px;height:38px;border-radius:50%;background:#f4f7fa;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#024377" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><nav style="display:flex;flex-direction:column;padding:10px 0">'+nav+'</nav><a href="#contact" data-c="1" style="margin:18px 22px;display:flex;align-items:center;justify-content:center;background:#39AC58;color:#fff;border-radius:12px;padding:14px;font-size:15px;font-weight:600;text-decoration:none">Book an Appointment</a>';
+    root.appendChild(scrim); root.appendChild(panel); document.documentElement.appendChild(root);
+    scrim.addEventListener('click',function(){ toggle(false); });
+    panel.addEventListener('click',function(e){ if(e.target.closest('[data-c]')) toggle(false); });
+  }
+  function toggle(open){
+    build();
+    if(open) root.classList.add('open'); else root.classList.remove('open');
+  }
+  window.__toggleDrawer=toggle;
+  document.addEventListener('click',function(e){
+    if(e.target.closest&&e.target.closest('[data-drawer-open]')){ e.preventDefault(); toggle(true); }
+  });
+})();
+</script>
+</helmet>
+
+<div style="max-width:412px;margin:0 auto;min-height:100vh;overflow-x:hidden;background:#fff;box-shadow:0 0 50px rgba(0,0,0,.3)">
+
+  <!-- ============ HEADER (mobile) ============ -->
+  <header data-screen-label="Header" style="position:relative;z-index:30;background:#fff;box-shadow:0 2px 14px rgba(27,49,56,.08)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px">
+      <img src="assets/logo.png" alt="Dr. Jaydeep Dalvi — Expert Urologist &amp; Kidney Specialist" style="height:42px;width:auto;display:block" />
+      <div style="display:flex;align-items:center;gap:8px">
+        <a href="tel:+919225573443" aria-label="Call" style="width:44px;height:44px;border-radius:11px;background:#024377;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+        <a href="mailto:contact@jaydeepurology.in" aria-label="Email" style="width:44px;height:44px;border-radius:11px;background:#024377;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>
+        <button aria-label="Menu" data-drawer-open="1" style="width:44px;height:44px;border-radius:50%;background:#39AC58;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <!-- ============ HERO (full-bleed photo) ============ -->
+  <section id="top" data-screen-label="Hero" style="position:relative;overflow:hidden;background:#003169;background-image:url('assets/mobile-hero.png');background-size:100% auto;background-position:top center;background-repeat:no-repeat;min-height:730px">
+    <!-- text + buttons wrapped over the hero image -->
+    <div style="position:relative;z-index:5;padding:32px 20px 0;box-sizing:border-box">
+      <h1 style="font-size:32px;line-height:1.2;font-weight:700;color:#fff;letter-spacing:-.3px;margin:0">
+        Kidney Stones, Prostate, <span style="font-style:italic;font-weight:500">or</span> Urine Trouble?
+        <span style="display:block;color:#5ecd7d;margin-top:8px">You're in the Right Hands.</span>
+      </h1>
+      <p style="margin-top:14px;font-size:15px;line-height:1.55;color:rgba(255,255,255,.85)">Trusted urologist in Nagpur for kidney stones, prostate, and urine problems &mdash; accurate diagnosis &amp; real relief.</p>
+      <div style="display:flex;flex-wrap:nowrap;gap:10px;margin-top:22px">
+        <a href="#contact" style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:8px;background:#39AC58;color:#fff;border-radius:32px;padding:13px 12px;font-size:13.5px;font-weight:600;text-decoration:none;white-space:nowrap">Book an Appointment<span style="flex:none;width:26px;height:26px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#39AC58" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span></a>
+        <a href="#conditions" style="flex:none;display:flex;align-items:center;justify-content:center;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:32px;padding:13px 18px;font-size:13.5px;font-weight:500;text-decoration:none;white-space:nowrap">See Options</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATISTICS ============ -->
+  <section data-screen-label="Statistics" style="background:linear-gradient(180deg,#f4f8fa 0%,#eef3f7 100%);padding:0 0 22px;position:relative;z-index:8">
+    <div style="max-width:1120px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;transform:translateY(-46px)">
+
+      <!-- Experience -->
+      <div data-card style="position:relative;background:#fff;border-radius:18px;padding:28px 26px;box-shadow:0 18px 44px rgba(27,49,56,.12);border:1px solid #eef1f4;overflow:hidden;transition:transform .3s ease,box-shadow .3s ease" style-hover="transform:translateY(-7px);box-shadow:0 30px 60px rgba(27,49,56,.18)">
+        <div style="position:absolute;left:0;top:0;width:100%;height:4px;background:#25313E"></div>
+        <div style="position:absolute;right:-26px;top:-26px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(37,49,62,.07),transparent 68%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:16px;position:relative">
+          <span style="flex:none;width:62px;height:62px;border-radius:16px;background:#024377;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(2,67,119,.28);animation:condFloat 6s ease-in-out infinite">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.3L7 22l5-3 5 3-1.2-8.7"/><path d="M12 5.5l1 2 2.2.2-1.6 1.5.5 2.1L12 10.2l-2.1 1.1.5-2.1L8.8 7.7l2.2-.2z" fill="#f5a623" stroke="none"/></svg>
+          </span>
+          <div style="line-height:1.02">
+            <div style="font-size:40px;font-weight:800;color:#25313E;letter-spacing:-1px">11<span style="color:#39AC58">+</span></div>
+            <div style="font-size:13.5px;font-weight:500;color:#5a6b72;margin-top:4px">Years of Experience</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patients Treated -->
+      <div data-card style="position:relative;background:#fff;border-radius:18px;padding:28px 26px;box-shadow:0 18px 44px rgba(27,49,56,.12);border:1px solid #eef1f4;overflow:hidden;transition:transform .3s ease,box-shadow .3s ease" style-hover="transform:translateY(-7px);box-shadow:0 30px 60px rgba(27,49,56,.18)">
+        <div style="position:absolute;left:0;top:0;width:100%;height:4px;background:#80B368"></div>
+        <div style="position:absolute;right:-26px;top:-26px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(128,179,104,.12),transparent 68%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:16px;position:relative">
+          <span style="flex:none;width:62px;height:62px;border-radius:16px;background:linear-gradient(150deg,#80B368,#6fa258);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(128,179,104,.3);animation:condFloat 6.6s ease-in-out infinite .4s">
+            <svg width="31" height="31" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 6.2a3 3 0 010 5.6"/><path d="M18.5 14c2 .6 3.5 2.5 3.5 5"/><path d="M20.5 4.8c1 .9 1.6 2 1.6 3.4" opacity="0"/><path d="M12.5 9.5c.9 1.1 2.4 1 3.3-.1" opacity="0"/></svg>
+          </span>
+          <div style="line-height:1.02">
+            <div style="font-size:40px;font-weight:800;color:#25313E;letter-spacing:-1px">10,000<span style="color:#80B368">+</span></div>
+            <div style="font-size:13.5px;font-weight:500;color:#5a6b72;margin-top:4px">Patients Treated</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Rating -->
+      <div data-card style="position:relative;background:#fff;border-radius:18px;padding:28px 26px;box-shadow:0 18px 44px rgba(27,49,56,.12);border:1px solid #eef1f4;overflow:hidden;transition:transform .3s ease,box-shadow .3s ease" style-hover="transform:translateY(-7px);box-shadow:0 30px 60px rgba(27,49,56,.18)">
+        <div style="position:absolute;left:0;top:0;width:100%;height:4px;background:linear-gradient(90deg,#4285F4 0%,#EA4335 33%,#FBBC05 66%,#34A853 100%)"></div>
+        <div style="position:absolute;right:-26px;top:-26px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(66,133,244,.10),transparent 68%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:16px;position:relative">
+          <span style="flex:none;width:62px;height:62px;border-radius:16px;background:#fff;border:1px solid #eef1f4;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(27,49,56,.12);animation:condFloat 7.2s ease-in-out infinite .8s">
+            <svg width="30" height="30" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>
+          </span>
+          <div style="line-height:1.02">
+            <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:40px;font-weight:800;color:#25313E;letter-spacing:-1px">5.0</span><span style="display:inline-flex;gap:1px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBC05"><path d="M12 2.5l2.9 6 6.6.6-5 4.4 1.5 6.5L12 17.9 6 20.5l1.5-6.5-5-4.4 6.6-.6z"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBC05"><path d="M12 2.5l2.9 6 6.6.6-5 4.4 1.5 6.5L12 17.9 6 20.5l1.5-6.5-5-4.4 6.6-.6z"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBC05"><path d="M12 2.5l2.9 6 6.6.6-5 4.4 1.5 6.5L12 17.9 6 20.5l1.5-6.5-5-4.4 6.6-.6z"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBC05"><path d="M12 2.5l2.9 6 6.6.6-5 4.4 1.5 6.5L12 17.9 6 20.5l1.5-6.5-5-4.4 6.6-.6z"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBC05"><path d="M12 2.5l2.9 6 6.6.6-5 4.4 1.5 6.5L12 17.9 6 20.5l1.5-6.5-5-4.4 6.6-.6z"/></svg>
+            </span></div>
+            <div style="font-size:13.5px;font-weight:500;color:#5a6b72;margin-top:4px">Google Rating &middot; 79 reviews</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SYMPTOMS / SELF-CHECK ============ -->
+  <section data-screen-label="Symptoms" style="background:linear-gradient(140deg,#024377 0%,#02528f 55%,#0a5c9c 100%);padding:52px 0 60px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(440px 440px at 88% 6%,rgba(57,172,88,.12),transparent 70%),radial-gradient(520px 520px at 4% 96%,rgba(128,179,104,.14),transparent 72%);pointer-events:none"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:26px 26px;opacity:.5;pointer-events:none"></div>
+    <div style="position:absolute;right:-150px;top:-150px;width:460px;height:460px;border-radius:50%;border:1px solid rgba(255,255,255,.06);pointer-events:none"></div>
+    <div style="position:absolute;right:-80px;top:-80px;width:320px;height:320px;border-radius:50%;border:1px solid rgba(57,172,88,.10);pointer-events:none"></div>
+    <div style="position:absolute;left:-130px;bottom:-130px;width:380px;height:380px;border-radius:50%;border:1px solid rgba(255,255,255,.05);pointer-events:none"></div>
+    <div style="position:absolute;left:-60px;bottom:-60px;width:240px;height:240px;border-radius:50%;border:1px solid rgba(159,208,127,.12);pointer-events:none"></div>
+    <div style="position:absolute;right:4%;bottom:-40px;font-size:220px;line-height:1;color:rgba(255,255,255,.04);pointer-events:none">✚</div>
+    <!-- kidney sketch watermarks (inverted for dark bg) -->
+    <img src="assets/kidney-sketch.avif" alt="" style="position:absolute;left:-70px;top:-30px;width:300px;height:auto;opacity:.07;filter:invert(1);mix-blend-mode:screen;pointer-events:none" />
+    <img src="assets/kidney-sketch.avif" alt="" style="position:absolute;right:-60px;bottom:-70px;width:260px;height:auto;opacity:.06;filter:invert(1);mix-blend-mode:screen;transform:scaleX(-1) rotate(8deg);pointer-events:none" />
+    <!-- kidney-stone scatter -->
+    <svg viewBox="0 0 160 120" style="position:absolute;left:46%;top:14px;width:150px;height:112px;opacity:.5;pointer-events:none" fill="none" stroke="rgba(57,172,88,.22)" stroke-width="1.6" stroke-linejoin="round">
+      <path d="M30 30l9-5 8 6-3 10-9 2-6-7z"/>
+      <path d="M70 18l7-4 7 5-2 8-8 2-5-6z"/>
+      <path d="M52 56l8-4 7 5-2 8-8 2-5-6z"/>
+      <path d="M96 44l6-3 6 4-2 7-7 1-4-5z"/>
+      <path d="M118 74l6-3 6 4-2 7-7 1-4-5z"/>
+    </svg>
+    <div style="max-width:1180px;margin:0 auto;padding:0 40px;position:relative">
+
+      <!-- header -->
+      <div style="text-align:center;max-width:680px;margin:0 auto 30px">
+        <h2 style="font-size:30px;font-weight:600;color:#fff;line-height:1.2">Is any of this true for you <span style="color:#9fd07f">right now?</span></h2>
+      </div>
+
+      <!-- carousel band -->
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:24px;padding:22px;position:relative">
+        <div style="display:grid;grid-template-columns:0.92fr 1.3fr 0.92fr;gap:20px;align-items:stretch">
+
+          <!-- left image — one editable slot per slide -->
+          <div style="position:relative;min-height:380px">
+            <sc-for list="{{ symImgs }}" as="im" hint-placeholder-count="5">
+              <div style="position:absolute;inset:0;opacity:{{ im.opacity }};z-index:{{ im.z }};pointer-events:{{ im.pe }};transition:opacity .5s ease">
+                <div style="position:absolute;inset:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.28)">
+                  <image-slot id="{{ im.id }}" style="width:100%;height:100%" shape="rect" placeholder="Photo for this concern"></image-slot>
+                </div>
+              </div>
+            </sc-for>
+            <div style="position:absolute;left:14px;top:14px;z-index:5;display:inline-flex;align-items:center;gap:7px;background:rgba(37,49,62,.78);backdrop-filter:blur(3px);border-radius:999px;padding:6px 13px;pointer-events:none">
+              <span style="width:6px;height:6px;border-radius:50%;background:#39AC58"></span>
+              <span style="font-size:11px;font-weight:600;letter-spacing:.6px;color:#fff;text-transform:uppercase">Sign {{ symActive.num }}</span>
+            </div>
+          </div>
+
+          <!-- center content card -->
+          <div style="position:relative;display:flex">
+            <!-- arrows hugging the card -->
+            <button onClick="{{ prevSym }}" style="position:absolute;left:-31px;top:50%;transform:translateY(-50%);z-index:8;width:44px;height:44px;border-radius:50%;background:#024377;border:1px solid rgba(255,255,255,.16);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,.3);transition:all .2s ease" style-hover="background:#013356;border-color:#39AC58">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button onClick="{{ nextSym }}" style="position:absolute;right:-31px;top:50%;transform:translateY(-50%);z-index:8;width:44px;height:44px;border-radius:50%;background:#024377;border:1px solid rgba(255,255,255,.16);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,.3);transition:all .2s ease" style-hover="background:#013356;border-color:#39AC58">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+
+            <div style="flex:1;background:linear-gradient(160deg,#017DB0 0%,#016a96 100%);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:34px 36px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden">
+              <div style="position:absolute;right:-30px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(159,208,127,.16),transparent 68%);pointer-events:none"></div>
+              <p style="font-size:25px;font-weight:600;color:#fff;line-height:1.32;margin:0;position:relative;min-height:100px">{{ symActive.text }}</p>
+              <div style="display:flex;align-items:center;gap:9px;margin-top:6px;position:relative">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9fd07f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span style="font-size:13.5px;color:#9fd07f;font-weight:500">{{ symActive.hint }}</span>
+              </div>
+              <a href="#contact" style="align-self:flex-start;margin-top:26px;display:inline-flex;align-items:center;gap:11px;background:#fff;color:#024377;font-size:14px;font-weight:600;padding:7px 22px 7px 7px;border-radius:999px;text-decoration:none;box-shadow:0 12px 28px rgba(0,0,0,.22);position:relative;transition:all .25s ease" style-hover="transform:translateY(-2px)">
+                <span style="width:34px;height:34px;border-radius:50%;background:#024377;display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+                Know More
+              </a>
+              <!-- dots -->
+              <div style="display:flex;align-items:center;gap:8px;margin-top:26px;position:relative">
+                <sc-for list="{{ symDots }}" as="d" hint-placeholder-count="5">
+                  <button onClick="{{ d.on }}" style="height:8px;width:{{ d.w }};border-radius:99px;background:{{ d.bg }};border:none;padding:0;cursor:pointer;transition:all .3s ease"></button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <!-- right reassurance panel -->
+          <div style="border-radius:18px;min-height:380px;box-shadow:0 18px 40px rgba(0,0,0,.28);background:#fff;border:1px solid #e6edf2;padding:34px 32px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;left:-40px;bottom:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(57,172,88,.16),transparent 68%);pointer-events:none"></div>
+            <div style="position:absolute;right:22px;top:14px;font-size:110px;line-height:1;color:rgba(57,172,88,.14);font-family:Georgia,serif;pointer-events:none">&rdquo;</div>
+            <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;position:relative">
+              <span style="height:2px;width:28px;background:#39AC58;border-radius:2px"></span>
+              <span style="font-size:11px;font-weight:600;letter-spacing:1.6px;color:#39AC58;text-transform:uppercase">Don&rsquo;t Wait</span>
+            </div>
+            <div style="font-size:23px;font-weight:700;color:#25313E;line-height:1.28;position:relative">If you nodded at even one, <span style="color:#39AC58">stop ignoring it.</span></div>
+            <p style="font-size:14px;font-weight:500;color:#56676e;line-height:1.6;margin:14px 0 0;position:relative">None of this is <span style="color:#9aa6ac">&ldquo;just age&rdquo;</span> or <span style="color:#9aa6ac">&ldquo;normal for men.&rdquo;</span> These are your body&rsquo;s signals.</p>
+            <p style="font-size:13.5px;color:#7a8890;line-height:1.6;margin:10px 0 0;position:relative">Dr. Jaydeep finds the exact cause and offers a solution to it.</p>
+            <a href="#contact" style="align-self:flex-start;margin-top:22px;display:inline-flex;align-items:center;gap:11px;background:#39AC58;color:#fff;font-size:14px;font-weight:600;padding:7px 22px 7px 7px;border-radius:999px;text-decoration:none;box-shadow:0 12px 28px rgba(57,172,88,.34);position:relative;transition:all .25s ease" style-hover="transform:translateY(-2px)">
+              <span style="width:34px;height:34px;border-radius:50%;background:#eef6e9;display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39AC58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+              Book an Appointment
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT / MEET THE DOCTOR ============ -->
+  <section id="about" data-screen-label="About" style="background:#fff;padding:54px 0 88px;position:relative;overflow:hidden;scroll-margin-top:20px">
+    <div style="position:absolute;right:-40px;top:40px;font-size:150px;color:rgba(128,179,104,.07);line-height:1">❧</div>
+    <div style="max-width:1180px;margin:0 auto;padding:0 40px;position:relative">
+
+      <!-- top: image + intro -->
+      <div style="display:grid;grid-template-columns:{{ aboutCols }};gap:54px;align-items:stretch">
+        <div style="position:relative;order:{{ imgOrder }};display:flex;align-items:stretch">
+          <!-- doctor portrait (emblem + blue panel baked in) -->
+          <div style="position:relative;z-index:2;width:100%;height:100%;min-height:680px;display:flex;align-items:flex-end;justify-content:center">
+            <img src="assets/dr-jaydeep-cutout.png" alt="Dr. Jaydeep Dalvi, Urologist" style="width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block" />
+          </div>
+        </div>
+
+        <div style="order:{{ contentOrder }};display:flex;flex-direction:column;justify-content:center">
+          <h2 style="font-size:40px;font-weight:700;color:#024377;line-height:1.18;margin-top:12px;letter-spacing:-.6px">Meet Dr. Jaydeep Dalvi</h2>
+          <div style="font-size:32px;font-weight:600;color:#111111;margin-top:8px;line-height:1.25">A Trusted Urologist in Nagpur</div>
+          <div style="margin-top:18px;display:flex;flex-direction:column;gap:13px;font-size:14.5px;line-height:1.72;color:#56676e">
+            <p>Dr. Jaydeep Dalvi built his career on rigorous training. He completed his MBBS at GMC Nagpur, an MS in General Surgery at VMGMC Solapur, and his MCh in Urology at Sion, Mumbai &mdash; one of India&rsquo;s most respected centres for urological training.</p>
+            <p>Over the past 11+ years, he has treated more than 10,000 patients across the full spectrum of urology &mdash; from common kidney stones to complex cancers, and from paediatric cases to elderly care.</p>
+            <p>His expertise spans kidney, bladder, prostate, and reconstructive urology, including minimally invasive laser and keyhole procedures, men&rsquo;s health and andrology, female and paediatric urology, and dialysis support.</p>
+            <p>His approach is straightforward: an accurate diagnosis first, treatment explained in clear terms, and a plan tailored to each patient&rsquo;s condition and life.</p>
+          </div>
+
+          <div style="margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div data-card style="display:flex;align-items:flex-start;gap:13px;background:#eef6e9;border:1px solid #d6ead0;border-radius:14px;padding:16px 18px">
+              <span style="flex:none;width:40px;height:40px;border-radius:11px;background:#39AC58;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5"/></svg></span>
+              <div><div style="font-size:10.5px;font-weight:600;letter-spacing:.8px;color:#5f8a47;margin-bottom:3px">Education</div><div style="font-size:13.5px;font-weight:700;color:#25313E;line-height:1.35">MBBS &bull; MS &bull; MCh Urology</div></div>
+            </div>
+            <div data-card style="display:flex;align-items:flex-start;gap:13px;background:#eef6e9;border:1px solid #d6ead0;border-radius:14px;padding:16px 18px">
+              <span style="flex:none;width:40px;height:40px;border-radius:11px;background:#39AC58;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.3L7 22l5-3 5 3-1.2-8.7"/></svg></span>
+              <div><div style="font-size:10.5px;font-weight:600;letter-spacing:.8px;color:#5f8a47;margin-bottom:3px">Experience</div><div style="font-size:15px;font-weight:700;color:#25313E">11+ <span style="font-size:15px;font-weight:700;color:#25313E">Years</span></div></div>
+            </div>
+            <div data-card style="display:flex;align-items:flex-start;gap:13px;background:#eef6e9;border:1px solid #d6ead0;border-radius:14px;padding:16px 18px">
+              <span style="flex:none;width:40px;height:40px;border-radius:11px;background:#39AC58;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+              <div><div style="font-size:10.5px;font-weight:600;letter-spacing:.8px;color:#5f8a47;margin-bottom:3px">Patients Treated</div><div style="font-size:15px;font-weight:700;color:#25313E">10,000+</div></div>
+            </div>
+            <div data-card style="display:flex;align-items:flex-start;gap:13px;background:#eef6e9;border:1px solid #d6ead0;border-radius:14px;padding:16px 18px">
+              <span style="flex:none;width:40px;height:40px;border-radius:11px;background:#39AC58;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="#fff" stroke="none"/></svg></span>
+              <div><div style="font-size:10.5px;font-weight:600;letter-spacing:.8px;color:#5f8a47;margin-bottom:3px">Focus</div><div style="font-size:13.5px;font-weight:700;color:#25313E;line-height:1.35">Advanced Urological Care</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ CONDITIONS WE TREAT ============ -->
+  <section id="conditions" data-screen-label="Conditions" style="background:linear-gradient(120deg,#eef3f7 0%,#e7eef3 100%);padding:74px 0 84px;position:relative;overflow:hidden;scroll-margin-top:20px">
+    <div style="position:absolute;inset:0;background:radial-gradient(460px 460px at 92% 6%,rgba(128,179,104,.16),transparent 70%),radial-gradient(560px 560px at 4% 98%,rgba(70,120,150,.14),transparent 72%);pointer-events:none"></div>
+    <div style="position:absolute;right:-150px;top:-150px;width:440px;height:440px;border-radius:50%;border:1px solid rgba(37,49,62,.06);pointer-events:none"></div>
+    <div style="position:absolute;right:-80px;top:-80px;width:300px;height:300px;border-radius:50%;border:1px solid rgba(128,179,104,.16);pointer-events:none"></div>
+    <div style="position:absolute;left:-120px;bottom:-120px;width:360px;height:360px;border-radius:50%;border:1px solid rgba(37,49,62,.05);pointer-events:none"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(37,49,62,.05) 1px,transparent 1px);background-size:26px 26px;opacity:.6;pointer-events:none"></div>
+    <div style="max-width:1180px;margin:0 auto;padding:0 40px;position:relative">
+      <!-- intro -->
+      <div style="max-width:680px;margin:0 auto 34px;text-align:center">
+        <h2 style="font-size:28px;font-weight:700;color:#25313E;line-height:1.24;margin-top:11px;letter-spacing:-.3px">Urological Conditions Dr. Jaydeep Dalvi Diagnoses &amp; Treats in Nagpur</h2>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:18px">
+        <sc-for list="{{ condGrid }}" as="c" hint-placeholder-count="10">
+          <div data-card style="background:#fff;border-radius:20px;padding:26px 18px 22px;box-shadow:0 6px 22px rgba(27,49,56,.07);border:1px solid #eef1f4;display:flex;flex-direction:column;align-items:center;text-align:center;transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease" style-hover="transform:translateY(-8px);box-shadow:0 26px 50px rgba(27,49,56,.15);border-color:#c2e6cc">
+            <div style="position:relative;margin-bottom:16px">
+              <span style="position:absolute;inset:-7px;border-radius:50%;background:{{ c.grad }};opacity:.22;filter:blur(9px)"></span>
+              <span style="position:relative;width:60px;height:60px;border-radius:50%;background:{{ c.grad }};display:flex;align-items:center;justify-content:center;box-shadow:0 12px 24px rgba(27,49,56,.18)">{{ c.iconEl }}</span>
+            </div>
+            <div style="font-size:14.5px;font-weight:600;color:#25313E;line-height:1.3;min-height:38px">{{ c.name }}</div>
+            <p style="font-size:11.5px;line-height:1.55;color:#7a8890;margin:8px 0 16px">{{ c.desc }}</p>
+            <a href="#contact" style="margin-top:auto;width:38px;height:38px;border-radius:50%;background:#f4f7fa;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:all .25s ease" style-hover="background:#39AC58">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#39AC58" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TREATMENT APPROACH ============ -->
+  <section id="approach" data-screen-label="Approach" style="position:relative;background:linear-gradient(140deg,#024377 0%,#02528f 58%,#0a5c9c 100%);padding:80px 0;overflow:hidden;scroll-margin-top:20px">
+    <div style="position:absolute;inset:0;background:radial-gradient(420px 420px at 88% 8%,rgba(128,179,104,.16),transparent 70%),radial-gradient(520px 520px at 2% 96%,rgba(70,120,150,.18),transparent 72%);pointer-events:none"></div>
+    <div style="position:absolute;right:-160px;top:-160px;width:460px;height:460px;border-radius:50%;border:1px solid rgba(255,255,255,.06);pointer-events:none"></div>
+    <div style="position:absolute;right:-90px;top:-90px;width:320px;height:320px;border-radius:50%;border:1px solid rgba(159,208,127,.10);pointer-events:none"></div>
+    <div style="position:absolute;left:-130px;bottom:-130px;width:380px;height:380px;border-radius:50%;border:1px solid rgba(255,255,255,.05);pointer-events:none"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:26px 26px;opacity:.5;pointer-events:none"></div>
+    <div style="position:absolute;right:-50px;top:-30px;font-size:220px;color:rgba(255,255,255,.04);line-height:1;pointer-events:none">✚</div>
+    <div style="max-width:1100px;margin:0 auto;padding:0 40px;position:relative;z-index:1">
+
+      <div style="max-width:1040px;margin:0 auto 16px;text-align:center">
+        <h2 style="font-size:29px;font-weight:600;color:#fff;line-height:1.25;margin:0;white-space:nowrap">How Dr. Dalvi Treats Urological Conditions in Nagpur</h2>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:26px">
+        <span style="flex:1;max-width:120px;height:1px;background:rgba(255,255,255,.14)"></span>
+        <span style="font-size:24px;font-weight:600;color:#fff;white-space:nowrap;line-height:1.2;text-align:center">The full range, <span style="color:#9fd07f">under one roof</span></span>
+        <span style="flex:1;max-width:120px;height:1px;background:rgba(255,255,255,.14)"></span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+        <sc-for list="{{ procedures }}" as="p" hint-placeholder-count="5">
+          <div data-card style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 16px 36px rgba(0,0,0,.18);display:flex;flex-direction:column">
+            <image-slot id="{{ p.imgId }}" style="width:100%;height:150px" shape="rect" placeholder="{{ p.title }}"></image-slot>
+            <div style="padding:22px 24px 26px;display:flex;flex-direction:column;gap:10px">
+              <span style="width:42px;height:42px;border-radius:11px;background:#eaf3e3;color:#5f8a47;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;margin-top:-44px;border:3px solid #fff;position:relative;z-index:2">{{ p.n }}</span>
+              <h3 style="font-size:16px;font-weight:600;color:#25313E;line-height:1.32;margin:6px 0 0">{{ p.title }}</h3>
+              <p style="font-size:13px;line-height:1.62;color:#56676e;margin:0">{{ p.desc }}</p>
+            </div>
+          </div>
+        </sc-for>
+        <div style="grid-column:3;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:30px 30px">
+          <p style="font-size:26px;font-weight:700;color:#fff;line-height:1.24;margin:0;letter-spacing:-.01em">Every plan here is made for <span style="color:#9fd07f;font-style:italic">you</span>.</p>
+          <p style="font-size:18px;line-height:1.5;color:rgba(255,255,255,.7);margin:0">Not for the next patient.</p>
+          <a href="#contact" style="align-self:flex-start;margin-top:8px;display:inline-flex;align-items:center;gap:10px;background:#39AC58;color:#fff;font-size:14px;font-weight:600;padding:11px 22px;border-radius:999px;text-decoration:none;box-shadow:0 12px 26px rgba(57,172,88,.32)">Talk Now<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT FORM ============ -->
+  <section id="contact" data-screen-label="Contact" style="background:linear-gradient(120deg,#eef3f7 0%,#e7eef3 100%);padding:66px 0;position:relative;overflow:hidden;scroll-margin-top:20px">
+    <!-- abstract bg -->
+    <div style="position:absolute;inset:0;background:radial-gradient(620px 520px at 92% 2%,rgba(128,179,104,.16),transparent 70%),radial-gradient(600px 520px at -4% 100%,rgba(57,172,88,.10),transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;right:-120px;top:-120px;width:440px;height:440px;border-radius:50%;border:1px solid rgba(37,49,62,.06);pointer-events:none"></div>
+    <div style="position:absolute;right:-50px;top:-50px;width:300px;height:300px;border-radius:50%;border:1px solid rgba(128,179,104,.16);pointer-events:none"></div>
+    <div style="position:absolute;left:-120px;bottom:-120px;width:400px;height:400px;border-radius:50%;border:1px solid rgba(37,49,62,.05);pointer-events:none"></div>
+    <div style="position:absolute;left:-50px;bottom:-50px;width:240px;height:240px;border-radius:50%;border:1px solid rgba(57,172,88,.10);pointer-events:none"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(37,49,62,.05) 1px,transparent 1px);background-size:26px 26px;opacity:.6;pointer-events:none"></div>
+    <!-- hand-drawn kidney watermark -->
+    <img src="assets/kidney-sketch.avif" alt="" style="position:absolute;left:-90px;bottom:-110px;width:300px;height:auto;opacity:.14;mix-blend-mode:multiply;pointer-events:none" />
+    <img src="assets/kidney-sketch.avif" alt="" style="position:absolute;right:-50px;top:-40px;width:230px;height:auto;opacity:.12;mix-blend-mode:multiply;transform:scaleX(-1) rotate(10deg);pointer-events:none" />
+
+    <div style="max-width:1120px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:0.85fr 1.05fr;gap:48px;align-items:stretch;position:relative">
+      <!-- image side -->
+      <div style="position:relative;border-radius:20px;overflow:hidden;min-height:520px;box-shadow:0 26px 60px rgba(27,49,56,.16);border:6px solid #fff;outline:1px solid #e6edf2">
+        <img src="assets/contact-photo.png" alt="Dr. Jaydeep Dalvi at his urology clinic" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;position:absolute;inset:0" />
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:24px 24px 22px;background:linear-gradient(0deg,rgba(2,67,119,.92) 0%,rgba(2,67,119,.4) 60%,transparent 100%);pointer-events:none;text-align:center">
+          <div style="display:inline-block;border:1px solid rgba(255,255,255,.4);border-radius:12px;padding:11px 16px;font-size:13px;font-weight:600;color:#fff;line-height:1.35;background:rgba(2,67,119,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);white-space:nowrap">Talk to a urologist who actually listens.</div>
+        </div>
+      </div>
+
+      <!-- content + form side -->
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <!-- pitch -->
+        <div style="margin-bottom:24px">
+          <h2 style="font-size:34px;font-weight:600;color:#25313E;line-height:1.14;margin:0;letter-spacing:-.02em">One Visit. A Clear Answer.<br><span style="color:#39AC58">No More Guessing.</span></h2>
+          <p style="font-size:15px;color:#56676e;line-height:1.6;margin:16px 0 0;max-width:480px">You've Googled it enough. You've asked enough people who aren't doctors. Get straight answers from our urology clinic in Nagpur.</p>
+        </div>
+
+        <!-- form card -->
+        <div style="background:#fff;border-radius:18px;padding:28px 28px;box-shadow:0 24px 60px rgba(27,49,56,.14);border:1px solid #e6edf2">
+          <div style="display:flex;flex-direction:column;gap:13px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
+              <input placeholder="Name" style="font-family:inherit;font-size:13.5px;color:#3d4f56;border:1px solid #dfe3e7;border-radius:9px;padding:13px 14px;background:#fafbfc;outline:none">
+              <input placeholder="Phone" style="font-family:inherit;font-size:13.5px;color:#3d4f56;border:1px solid #dfe3e7;border-radius:9px;padding:13px 14px;background:#fafbfc;outline:none">
+            </div>
+            <input placeholder="Email" style="font-family:inherit;font-size:13.5px;color:#3d4f56;border:1px solid #dfe3e7;border-radius:9px;padding:13px 14px;background:#fafbfc;outline:none">
+            <textarea placeholder="Briefly describe your concern" rows="3" style="font-family:inherit;font-size:13.5px;color:#3d4f56;border:1px solid #dfe3e7;border-radius:9px;padding:13px 14px;background:#fafbfc;outline:none;resize:none"></textarea>
+            <button style="background:#39AC58;color:#fff;border:none;border-radius:32px;padding:8px 8px 8px 24px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:11px;transition:background .2s ease" style-hover="background:#2e9249">Book an Appointment<span style="width:34px;height:34px;border-radius:50%;background:#fff;color:#39AC58;display:flex;align-items:center;justify-content:center;font-size:14px">↗</span></button>
+            <p style="font-size:11.5px;color:#9aa6ad;text-align:center;margin:2px 0 0">Private &amp; confidential — your details are never shared.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIALS ============ -->
+  <section id="testimonials" data-screen-label="Testimonials" style="position:relative;background:linear-gradient(140deg,#024377 0%,#02528f 58%,#0a5c9c 100%);padding:64px 0;overflow:hidden;scroll-margin-top:20px">
+    <div style="position:absolute;right:-80px;top:-80px;width:460px;height:460px;border-radius:50%;border:1px solid rgba(255,255,255,.05);pointer-events:none"></div>
+    <div style="position:absolute;right:60px;top:60px;width:300px;height:300px;border-radius:50%;border:1px solid rgba(159,208,127,.08);pointer-events:none"></div>
+    <div style="position:absolute;left:-110px;bottom:-110px;width:400px;height:400px;border-radius:50%;border:1px solid rgba(128,179,104,.08);pointer-events:none"></div>
+    <div style="position:absolute;inset:0;background:radial-gradient(620px 480px at 88% -5%,rgba(128,179,104,.16),transparent 70%),radial-gradient(640px 520px at -5% 105%,rgba(70,120,150,.18),transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:26px 26px;pointer-events:none"></div>
+
+    <div style="position:relative">
+      <!-- header, centered -->
+      <div style="max-width:1140px;margin:0 auto 34px;padding:0 40px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:22px">
+        <div>
+          <h2 style="font-size:38px;font-weight:600;color:#fff;line-height:1.1;margin:0;letter-spacing:-.02em">Real People. Real <span style="font-style:italic;color:#9fd07f">Relief.</span></h2>
+        </div>
+      </div>
+
+      <!-- horizontal scroll rail with side arrows -->
+      <div style="max-width:1240px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px">
+        <button onClick="{{ scrollPrev }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .25s ease" style-hover="background:rgba(159,208,127,.2);border-color:#9fd07f">‹</button>
+        <div ref="{{ railRef }}" style="flex:1;display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 4px 24px;scrollbar-width:none;-ms-overflow-style:none">
+        <sc-for list="{{ testimonials }}" as="t" hint-placeholder-count="3">
+          <div data-card style="flex:none;width:calc((100% - 44px) / 3);min-width:300px;scroll-snap-align:start;background:#fff;border-radius:16px;padding:22px 24px 20px;display:flex;flex-direction:column;box-shadow:0 14px 36px rgba(0,0,0,.24)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:44px;color:#9fd07f;line-height:.5;font-family:Georgia,serif;height:22px">&ldquo;</div>
+              <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#4285F4" d="M44 24c0-1.5-.1-2.9-.4-4.3H24v8.5h11.3c-.5 2.6-2 4.8-4.2 6.3v5.2h6.8C41.8 36.3 44 30.7 44 24z"/><path fill="#34A853" d="M24 45c5.7 0 10.5-1.9 14-5.1l-6.8-5.2c-1.9 1.3-4.3 2-7.2 2-5.5 0-10.2-3.7-11.9-8.7H5.1v5.4C8.6 40.4 15.7 45 24 45z"/><path fill="#FBBC05" d="M12.1 27.9c-.4-1.3-.7-2.6-.7-4s.3-2.7.7-4v-5.4H5.1C3.7 17.3 3 20.6 3 24s.7 6.7 2.1 9.4l7-5.5z"/><path fill="#EA4335" d="M24 11.4c3.1 0 5.9 1.1 8.1 3.2l6-6C34.5 5.1 29.7 3 24 3 15.7 3 8.6 7.6 5.1 14.6l7 5.4c1.7-5 6.4-8.6 11.9-8.6z"/></svg>
+            </div>
+            <div style="font-size:12px;color:#FBBC05;letter-spacing:2px;margin:11px 0 8px">★★★★★</div>
+            <p style="font-size:13px;line-height:1.6;color:#3c4a52;margin:0 0 18px;flex:1">{{ t.text }}</p>
+            <div style="display:flex;align-items:center;gap:11px;padding-top:14px;border-top:1px solid #eef1ee">
+              <div style="flex:none;width:40px;height:40px;border-radius:50%;background:{{ t.color }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;font-family:'Poppins',sans-serif">{{ t.initial }}</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:#25313E">{{ t.name }}</div>
+                <div style="font-size:11.5px;color:#6a7a82;margin-top:2px">{{ t.role }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+        </div>
+        <button onClick="{{ scrollNext }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .25s ease" style-hover="background:rgba(159,208,127,.2);border-color:#9fd07f">›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section data-screen-label="FAQ" style="background:#f4f6f8;padding:76px 0;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-140px;top:-120px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(57,172,88,.08),transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;left:-120px;bottom:-120px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(2,67,119,.06),transparent 72%);pointer-events:none"></div>
+
+    <div style="max-width:1140px;margin:0 auto;padding:0 40px;position:relative">
+      <!-- header -->
+      <div style="text-align:center;margin-bottom:38px">
+        <h2 style="font-size:34px;font-weight:700;color:#25313E;line-height:1.18;letter-spacing:-.4px;margin:0">Questions Patients <span style="color:#39AC58">Ask Us</span></h2>
+      </div>
+
+      <!-- accordion -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="8">
+          <div data-card style="position:relative;display:flex;border-radius:14px;overflow:hidden;background:{{ f.cardBg }};box-shadow:{{ f.shadow }};transition:all .25s ease">
+            <span style="flex:none;width:5px;background:{{ f.barColor }};transition:background .25s ease"></span>
+            <div style="flex:1;min-width:0">
+              <button onClick="{{ f.toggle }}" style="width:100%;display:flex;align-items:center;gap:16px;border:none;cursor:pointer;text-align:left;padding:18px 22px;background:transparent;font-family:inherit">
+                <span style="flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:{{ f.tagBg }};color:{{ f.numColor }};font-size:14px;font-weight:700;transition:all .25s ease">{{ f.num }}</span>
+                <span style="flex:1;display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:15.5px;font-weight:600;color:#25313E;line-height:1.35">{{ f.q }}</span>
+                </span>
+                <span style="flex:none;width:30px;height:30px;border-radius:50%;border:1px solid {{ f.plusBorder }};background:{{ f.plusBg }};color:{{ f.plusColor }};display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:400;transition:all .25s ease;transform:rotate({{ f.rotate }})">+</span>
+              </button>
+              <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+                <p style="padding:0 24px 20px 72px;font-size:14px;line-height:1.7;color:#56676e;margin:0">{{ f.a }}</p>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer data-screen-label="Footer" style="background:linear-gradient(160deg,#024377 0%,#02528f 60%,#0a5c9c 100%);color:rgba(255,255,255,.7);padding:0;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-160px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(128,179,104,.14),transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;left:-120px;bottom:-140px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(57,172,88,.1),transparent 72%);pointer-events:none"></div>
+
+    <!-- top CTA strip -->
+    <div style="position:relative;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div style="max-width:1200px;margin:0 auto;padding:36px 40px;display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:14px">
+          <img src="assets/footer-logo.png" alt="Dr. Jaydeep Dalvi — Expert Urologist &amp; Kidney Specialist" style="height:72px;width:auto;display:block" />
+        </div>
+        <a href="#contact" style="display:inline-flex;align-items:center;gap:11px;background:#fff;color:#024377;font-size:14px;font-weight:600;padding:13px 13px 13px 22px;border-radius:999px;text-decoration:none;box-shadow:0 12px 28px rgba(0,0,0,.22);transition:all .25s ease" style-hover="transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.3)">Book an Appointment<span style="width:30px;height:30px;border-radius:50%;background:#39AC58;color:#fff;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></span></a>
+      </div>
+    </div>
+
+    <!-- animated abstract elements -->
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
+      <div style="position:absolute;left:8%;top:20%;width:120px;height:120px;border-radius:50%;border:1px dashed rgba(255,255,255,.08);animation:heroSpin 70s linear infinite"></div>
+      <div style="position:absolute;right:18%;bottom:14%;width:90px;height:90px;border-radius:50%;border:1px solid rgba(159,208,127,.14);animation:condFloat 8s ease-in-out infinite"></div>
+      <div style="position:absolute;left:30%;bottom:24%;width:14px;height:14px;border-radius:50%;background:rgba(159,208,127,.3);animation:heroDriftA 18s ease-in-out infinite"></div>
+      <div style="position:absolute;right:30%;top:18%;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.18);animation:heroDriftB 20s ease-in-out infinite"></div>
+      <svg viewBox="0 0 120 150" style="position:absolute;right:6%;top:24%;width:120px;height:150px;opacity:.07;animation:heroDriftA 22s ease-in-out infinite" fill="none" stroke="#9fd07f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M72 22c-26-10-50 6-55 33-5 26 8 56 35 60 16 2 28-6 29-18 1-11-8-15-16-21-14-10-15-34-2-48 6-7 14-9 9-6z"/></svg>
+    </div>
+
+    <!-- main columns -->
+    <div style="position:relative;max-width:1280px;margin:0 auto;padding:46px 40px 40px;display:grid;grid-template-columns:1.35fr 0.85fr 1.05fr 1.05fr;gap:44px">
+      <div>
+        <div style="font-size:15px;font-weight:600;letter-spacing:1.4px;color:#fff;margin-bottom:18px;text-transform:uppercase">Contact Us</div>
+        <div style="display:flex;align-items:flex-start;gap:12px;margin:0 0 18px;max-width:340px">
+          <span style="width:36px;height:36px;border-radius:9px;background:#39AC58;display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <p style="font-size:14.5px;line-height:1.65;color:rgba(255,255,255,.82);margin:0">33PV+927 Besa-Pipla Road, New Manish Nagar, Besa, Beltarodi Rd, near Haldiram, Nagpur, Maharashtra 440037</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <a href="tel:+919225573443" style="display:flex;align-items:center;gap:12px;font-size:15px;color:rgba(255,255,255,.88);text-decoration:none;transition:color .2s ease" style-hover="color:#9fd07f">
+            <span style="width:36px;height:36px;border-radius:9px;background:#39AC58;display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+            +91 92255 73443
+          </a>
+          <a href="mailto:contact@jaydeepurology.in" style="display:flex;align-items:center;gap:12px;font-size:15px;color:rgba(255,255,255,.88);text-decoration:none;transition:color .2s ease" style-hover="color:#9fd07f">
+            <span style="width:36px;height:36px;border-radius:9px;background:#39AC58;display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span>
+            contact@jaydeepurology.in
+          </a>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:24px">
+          <a href="#" aria-label="Facebook" style="width:36px;height:36px;border-radius:9px;background:#1877F2;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .2s ease" style-hover="transform:translateY(-3px)"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg></a>
+          <a href="#" aria-label="Instagram" style="width:36px;height:36px;border-radius:9px;background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .2s ease" style-hover="transform:translateY(-3px)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="#fff" stroke="none"/></svg></a>
+          <a href="#" aria-label="LinkedIn" style="width:36px;height:36px;border-radius:9px;background:#0A66C2;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .2s ease" style-hover="transform:translateY(-3px)"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM3.3 8.5h3.3V22H3.3zM9.2 8.5h3.16v1.84h.05c.44-.83 1.5-1.7 3.1-1.7 3.32 0 3.93 2.18 3.93 5v8.36h-3.3v-7.4c0-1.77-.03-4.04-2.46-4.04-2.46 0-2.84 1.92-2.84 3.9V22H9.2z"/></svg></a>
+          <a href="#" aria-label="YouTube" style="width:36px;height:36px;border-radius:9px;background:#FF0000;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .2s ease" style-hover="transform:translateY(-3px)"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.7-1.7C19.3 5.2 12 5.2 12 5.2s-7.3 0-8.9.4A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.7 1.7c1.6.4 8.9.4 8.9.4s7.3 0 8.9-.4a2.5 2.5 0 0 0 1.7-1.7C23 15.2 23 12 23 12zM9.8 15.3V8.7l6 3.3z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:600;letter-spacing:1.4px;color:#fff;margin-bottom:18px;text-transform:uppercase">Quick Links</div>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <sc-for list="{{ quickLinks }}" as="q" hint-placeholder-count="6">
+            <a href="#" style="font-size:15px;color:rgba(255,255,255,.72);text-decoration:none;transition:color .2s ease" style-hover="color:#9fd07f">{{ q }}</a>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:600;letter-spacing:1.4px;color:#fff;margin-bottom:18px;text-transform:uppercase">Quick Enquiry</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input placeholder="Your name" style="font-family:inherit;font-size:13.5px;color:#25313E;background:#fff;border:1px solid #e6edf2;border-radius:9px;padding:12px 14px;outline:none">
+          <input placeholder="Phone number" style="font-family:inherit;font-size:13.5px;color:#25313E;background:#fff;border:1px solid #e6edf2;border-radius:9px;padding:12px 14px;outline:none">
+          <input placeholder="Email address" style="font-family:inherit;font-size:13.5px;color:#25313E;background:#fff;border:1px solid #e6edf2;border-radius:9px;padding:12px 14px;outline:none">
+          <textarea placeholder="Your message" rows="3" style="font-family:inherit;font-size:13.5px;color:#25313E;background:#fff;border:1px solid #e6edf2;border-radius:9px;padding:12px 14px;outline:none;resize:none"></textarea>
+          <button style="margin-top:2px;display:flex;align-items:center;justify-content:center;gap:9px;background:#39AC58;color:#fff;border:none;border-radius:9px;padding:13px 16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s ease" style-hover="background:#2e9249">Send Message<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:600;letter-spacing:1.4px;color:#fff;margin-bottom:18px;text-transform:uppercase">Find Us</div>
+        <div style="position:relative;border-radius:12px;overflow:hidden;height:230px;border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 30px rgba(0,0,0,.2)">
+          <image-slot id="footer-map" style="width:100%;height:100%" shape="rect" placeholder="Google Map"></image-slot>
+          <a href="#" style="position:absolute;left:12px;bottom:12px;display:inline-flex;align-items:center;gap:8px;background:#fff;color:#024377;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;text-decoration:none;box-shadow:0 6px 16px rgba(0,0,0,.18)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#39AC58" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Get Directions</a>
+        </div>
+      </div>
+    </div>
+    <div style="position:relative;border-top:1px solid rgba(255,255,255,.08);padding:20px 40px;text-align:center;font-size:13.5px;color:rgba(255,255,255,.6)">© 2026 Dr. Jaydeep Dalvi. All rights reserved. | Designed &amp; Developed by GrowthPixel Pvt Ltd</div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;imageOnRight&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = {
+    openCond: 0,
+    openFaq: 0,
+    openSym: 0,
+  };
+
+  renderVals() {
+    const navHrefs = ['#top','#about','#conditions','#approach','#testimonials','#contact'];
+    const navItems = ['Home','About Us','Services','Procedures','Testimonials','Contact Us']
+      .map((label,i)=>({label, href: navHrefs[i], color: i===0 ? '#25313E' : '#5a6b70', navColor: i===0 ? '#fff' : 'rgba(255,255,255,.8)', navWeight: i===0 ? 700 : 500, navOpacity: i===0 ? 1 : 0.82}));
+
+    const heroStats = [
+      {num:'11+', icon:'🎓', label:'Years of Experience'},
+      {num:'10,000+', icon:'🩺', label:'Patients Treated'},
+      {num:'5.0', icon:'⭐', label:'Google Rating'},
+    ];
+
+    const symRaw = [
+      'Sharp pain in your back or side that comes and goes?',
+      'Getting up two, three times a night to pee?',
+      'A weak stream, or trouble starting at all?',
+      'Burning when you pee, or a little blood?',
+      "Something you're too embarrassed to say out loud?",
+    ];
+    const symHints = [
+      'Often a kidney or ureter stone.',
+      'A classic sign of an enlarged prostate.',
+      'The flow problem men ignore for years.',
+      'An infection or something that needs a closer look.',
+      "Men's health, leaking, swelling — heard with respect.",
+    ];
+    const symTotal = symRaw.length;
+    const sa = this.state.openSym;
+    const symActive = {
+      num: String(sa+1).padStart(2,'0'),
+      total: String(symTotal).padStart(2,'0'),
+      text: symRaw[sa],
+      hint: symHints[sa],
+      i0: sa===0, i1: sa===1, i2: sa===2, i3: sa===3, i4: sa===4,
+    };
+    const prevSym = ()=>this.setState(s=>({openSym:(s.openSym-1+symTotal)%symTotal}));
+    const nextSym = ()=>this.setState(s=>({openSym:(s.openSym+1)%symTotal}));
+    const symDots = symRaw.map((_,i)=>({
+      on: ()=>this.setState({openSym:i}),
+      w: i===sa ? '26px' : '8px',
+      bg: i===sa ? '#39AC58' : 'rgba(255,255,255,.28)',
+    }));
+    const symptoms = symRaw.map(text => ({ text }));
+    const symImgs = symRaw.map((_,i)=>({
+      id:'sym-img-'+i,
+      opacity: i===sa ? 1 : 0,
+      z: i===sa ? 2 : 1,
+      pe: i===sa ? 'auto' : 'none',
+    }));
+
+    const condRaw = [
+      {name:'Kidney Stones', desc:"That sharp, gripping pain in your back or side that just won't quit."},
+      {name:'Prostate Problems (BPH)', desc:"Weak flow, frequent trips, trouble starting. Often it's the prostate."},
+      {name:'Urine Problems', desc:'Burning, leaking, going too often, or blood in your urine.'},
+      {name:'Bladder Issues', desc:"Stones, tumours, or a bladder that won't behave."},
+      {name:'Urethral & Ureter Narrowing', desc:'A blocked or narrowed passage making everything harder.'},
+      {name:'Men\u2019s Health (Andrology)', desc:'Erectile dysfunction, premature ejaculation, swelling, hydrocele, hernia.'},
+      {name:'Cancers of Kidney, Bladder, Prostate, Penile', desc:'Found early, treated right. We guide you through every step.'},
+      {name:"Children's Urology", desc:'Urinary problems in kids, handled with extra care.'},
+      {name:"Women's Urology", desc:"Urine troubles women are often told to live with. You don't have to."},
+      {name:'Kidney Failure Support', desc:'AV fistula and dialysis care when your kidneys need backup.'},
+    ];
+    const ca = this.state.openCond;
+    const condList = condRaw.map((c,i)=>{
+      const active = ca===i;
+      const dist = Math.abs(i-ca);
+      const op = active ? 1 : (dist===1 ? 0.66 : dist===2 ? 0.42 : 0.26);
+      return {
+        name:c.name, desc:c.desc, active,
+        num: String(i+1).padStart(2,'0'),
+        onHover: ()=>this.setState({openCond:i}),
+        op,
+        nameSize: active ? '21px' : '15.5px',
+        nameColor: active ? '#25313E' : '#9aa6ac',
+        numBg: active ? '#39AC58' : '#eef2f5',
+        numColor: active ? '#fff' : '#9aa6ac',
+        barH: active ? '78%' : '0%',
+        bg: active ? '#f7faf5' : 'transparent',
+        pad: active ? '18px 20px' : '11px 20px',
+      };
+    });
+    const condImages = condRaw.map((c,i)=>({
+      id:'cond-card-'+i,
+      opacity: ca===i ? 1 : 0,
+      scale: ca===i ? 'scale(1)' : 'scale(1.06)',
+      z: ca===i ? 2 : 1,
+    }));
+    const activeName = condRaw[ca] ? condRaw[ca].name : '';
+    const activeDesc = condRaw[ca] ? condRaw[ca].desc : '';
+    const activeNum = String(ca+1).padStart(2,'0');
+    const condIcons = [
+      '<path d="M14 4c-4.5-1.5-9 1.5-9.5 6.5C4 16 7 20 11.5 20c2.5 0 4-1.4 4-3.2 0-1.6-1.2-2.4-2.6-3.2-2.6-1.5-2.8-5.4-.4-7.6 1.2-1.1 1.9-1.5 1.5-2z"/><circle cx="10.4" cy="10.6" r="1" fill="#fff" stroke="none"/><circle cx="12.6" cy="13.6" r=".8" fill="#fff" stroke="none"/>',
+      '<circle cx="12" cy="13" r="8"/><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M12 13l3.5-3"/>',
+      '<path d="M12 3c3.5 4.5 6 7.6 6 11a6 6 0 01-12 0c0-3.4 2.5-6.5 6-11z"/>',
+      '<path d="M5 11a7 6 0 0 0 14 0c0-2.4-1.4-4-3-5.2l-1-2.8h-6l-1 2.8C6.4 7 5 8.6 5 11z"/><path d="M9 12c1.2 1.4 4.8 1.4 6 0"/>',
+      '<path d="M7 3c3 4 3 5.5 0 9s-3 5 0 9M17 3c-3 4-3 5.5 0 9s3 5 0 9"/>',
+      '<circle cx="10" cy="14" r="5"/><path d="M14.5 9.5L20 4M20 4h-5M20 4v5"/>',
+      '<path d="M12 4a4 4 0 0 0-3 6.6L5 19l4-2 3 4 3-4 4 2-4-8.4A4 4 0 0 0 12 4z"/>',
+      '<circle cx="12" cy="6" r="2.5"/><path d="M12 8.5v6M8 11h8M9 21l3-4 3 4"/>',
+      '<circle cx="12" cy="8" r="5"/><path d="M12 13v8M9 18h6"/>',
+      '<path d="M12 3c3.5 4.5 6 7.6 6 11a6 6 0 01-12 0c0-3.4 2.5-6.5 6-11z"/><path d="M8.5 14h2l1-2 1.5 4 1-2h1.5"/>',
+    ];
+    const condGrads = [
+      'linear-gradient(150deg,#39AC58,#2e9249)',
+      'linear-gradient(150deg,#024377,#02528f)',
+    ];
+    const condGrid = condRaw.map((c,i)=>({
+      name:c.name, desc:c.desc,
+      num: String(i+1).padStart(2,'0'),
+      grad: condGrads[i % condGrads.length],
+      iconEl: React.createElement('span',{style:{display:'flex',alignItems:'center',justifyContent:'center'},dangerouslySetInnerHTML:{__html:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+condIcons[i]+'</svg>'}}),
+    }));
+
+    const procedures = [
+      {n:'01', imgId:'proc-img-0', title:'Laser Stone Removal (RIRS, URS, PCNL)', desc:'Break and clear kidney or ureter stones, often without a single big cut.'},
+      {n:'02', imgId:'proc-img-1', title:'TURP for Prostate (BPH)', desc:'Fixes weak flow and frequent urination without open surgery.'},
+      {n:'03', imgId:'proc-img-2', title:'TURBT & Cancer Surgery', desc:'Targeted removal of bladder, kidney, and prostate tumours.'},
+      {n:'04', imgId:'proc-img-3', title:'Reconstruction (Urethroplasty, Pyeloplasty, Reimplant)', desc:'Repairs blockages and narrowing so things flow freely again.'},
+      {n:'05', imgId:'proc-img-4', title:'Circumcision, Hydrocele, Hernia & Andrology Care', desc:'The everyday procedures, done cleanly and comfortably.'},
+    ];
+
+    const tData = [
+      {name:'Vaibhav Bani', initial:'V', color:'#5a8f3c', role:'Kidney Stone Treatment', text:'Dr. Jaydeep is very kind and humble. He listens and understands the problem very calmly, then explains the causes in simple language. He\u2019s brilliant at identifying the root cause, and very transparent \u2014 he only suggests surgery when it\u2019s truly required. His way of treatment is result-oriented and full of empathy.'},
+      {name:'Karan Meghe', initial:'K', color:'#3a72a8', role:'Prostate Consultation', text:'Dr. Jaydeep is an exceptional urologist. His expertise and compassionate approach are truly remarkable. He takes the time to thoroughly explain everything. I felt very confident and well-cared for. I highly recommend his services.'},
+      {name:'Sanket Pawar', initial:'S', color:'#c0563f', role:'Laser Stone Surgery', text:'I had severe kidney stone pain for weeks. Dr. Jaydeep diagnosed it precisely and the laser procedure was painless and quick. I was back on my feet the very next day. Truly grateful for his care.'},
+      {name:'Rohit Deshmukh', initial:'R', color:'#7a5fb0', role:'Urinary Tract Issue', text:'Very professional and patient. He never rushes the consultation and answers every question with patience. The clinic staff is courteous too. Highly recommend Dr. Jaydeep for any urology concern.'},
+      {name:'Anil Khandelwal', initial:'A', color:'#3a8f8a', role:'BPH Treatment', text:'After years of discomfort, Dr. Jaydeep\u2019s treatment changed my life. His approach is honest and he explained every option clearly. Best urologist in Nagpur, without a doubt.'},
+    ];
+
+    const faqRaw = [
+      {cat:'Kidney Stones', icon:'droplet', q:'Do I really need surgery for my kidney stone?', a:'Not always. Many stones can pass or be cleared with a laser, no big cut. Dr. Dalvi will tell you what your case needs.'},
+      {cat:'Prostate & Flow', icon:'flow', q:'Is it too late to fix my prostate or urine problem?', a:'It\u2019s rarely too late. These problems respond well at almost any stage. The sooner you come, the easier it usually is.'},
+      {cat:'Privacy', icon:'lock', q:'I\u2019m embarrassed about my problem. Will this be private?', a:'Completely. Whatever it is \u2014 men\u2019s health, leaking, swelling \u2014 you\u2019ll be heard with respect. No judgement. Ever.'},
+      {cat:'Diagnosis', icon:'search', q:'My reports came back \u201cnormal,\u201d but I still feel something\u2019s wrong.', a:'You\u2019re not imagining it. Sometimes the answer is in details a quick test misses. Dr. Dalvi looks closer until you have a real answer.'},
+      {cat:'About the Doctor', icon:'award', q:'Why choose Dr. Dalvi over other doctors?', a:'Top training (MCh from Sion, Mumbai). 11+ years. 10,000+ patients. But mostly, he\u2019s honest, and he listens.'},
+      {cat:'Booking', icon:'calendar', q:'How do I book an appointment?', a:'It\u2019s easy. Tap the \u201cBook an Appointment\u201d button, or call the clinic. To see the best urologist in Nagpur, just pick a time that suits you.'},
+      {cat:'Children\u2019s Care', icon:'child', q:'Will my child\u2019s urology problem need an operation?', a:'Often not. Children\u2019s cases are handled gently, with surgery only as a last resort.'},
+      {cat:'Kidney Care', icon:'shield', q:'Do you help with kidney failure and dialysis?', a:'Yes. We provide AV fistula creation and dialysis support to keep you safe and cared for.'},
+    ];
+    const faqColors = ['#39AC58'];
+    const faqTints = {'#39AC58':'rgba(57,172,88,.1)'};
+    const iconPaths = {
+      droplet:['M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.5 8 7.5 12 2.5z'],
+      flow:['M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.5 8 7.5 12 2.5z','M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5'],
+      lock:['M6 11h12v9H6z','M9 11V8a3 3 0 0 1 6 0v3'],
+      search:['M11 11m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0','M20 20l-4.5-4.5'],
+      award:['M12 14m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0','M8 18.5L7 22l5-2.5L17 22l-1-3.5'],
+      calendar:['M5 6h14v14H5z','M5 10h14','M9 3v4','M15 3v4'],
+      child:['M12 7m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0','M7 21v-2a5 5 0 0 1 10 0v2'],
+      shield:['M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z','M9.5 11.5l1.8 1.8 3.2-3.6'],
+    };
+    const makeIcon = (name, color) => React.createElement('svg', {width:15, height:15, viewBox:'0 0 24 24', fill:'none', stroke:color, strokeWidth:1.9, strokeLinecap:'round', strokeLinejoin:'round'},
+      (iconPaths[name]||[]).map((d,k)=>React.createElement('path',{key:k,d})));
+    const faqs = faqRaw.map((f,i)=>{
+      const open = this.state.openFaq === i;
+      const color = faqColors[i % faqColors.length];
+      return {
+        q:f.q, a:f.a, cat:f.cat, open,
+        num: String(i+1).padStart(2,'0'),
+        numColor: open ? '#fff' : color,
+        tagColor: color,
+        tagBg: open ? color : faqTints[color],
+        iconEl: makeIcon(f.icon, open ? '#fff' : color),
+        plusColor: open ? '#fff' : '#9aa8b0',
+        plusBorder: open ? color : '#e0e6ea',
+        plusBg: open ? color : 'transparent',
+        rotate: open ? '135deg' : '0deg',
+        barColor: open ? color : '#e0e6ea',
+        cardBg: open ? faqTints[color] : '#fff',
+        shadow: open ? '0 16px 36px rgba(27,49,56,.12)' : '0 2px 8px rgba(27,49,56,.05)',
+        toggle:()=>this.setState({openFaq: open ? -1 : i}),
+      };
+    });
+
+    const patientsLabel = '10,000+';
+
+    const imageOnRight = this.props.imageOnRight ?? false;
+    const aboutCols = imageOnRight ? '1fr 0.66fr' : '0.66fr 1fr';
+    const imgOrder = imageOnRight ? 2 : 1;
+    const contentOrder = imageOnRight ? 1 : 2;
+
+    const expertise = [
+      'Kidney Stone Treatment',
+      'Prostate Care',
+      'Bladder Disorders',
+      'Urological Cancers',
+      'Laser Surgery',
+      'Reconstructive Urology',
+      "Men's Health & Andrology",
+      'Female Urology',
+      'Paediatric Urology',
+      'Dialysis Support',
+    ];
+
+    const railRef = (el)=>{ this._rail = el; };
+    const scrollBy = (dir)=>{ if(this._rail){ const card=this._rail.querySelector('div'); const step=card?card.offsetWidth+22:380; this._rail.scrollBy({left:dir*step,behavior:'smooth'}); } };
+
+    return {
+      navItems, heroStats,
+      railRef,
+      scrollPrev: ()=>scrollBy(-1),
+      scrollNext: ()=>scrollBy(1),
+      patientsLabel,
+      aboutCols, imgOrder, contentOrder,
+      symptoms, expertise,
+      symActive, symDots, prevSym, nextSym, symImgs,
+      condList, condImages, activeName, activeDesc, activeNum, condGrid,
+      procedures,
+      testimonials: tData,
+      faqs,
+      quickLinks:['Home','About Us','Services','Procedures','Testimonials','Contact Us'],
+    };
+  }
+}
+</script>
+</body>
+</html>
