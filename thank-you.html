@@ -162,9 +162,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span style="font-size:15px;font-weight:500;color:#25313E">+91 92255 73443</span>
           </a>
           <span style="width:1px;height:26px;background:#e2e8ec"></span>
-          <a href="#" data-eml="1" style="display:flex;align-items:center;gap:10px;padding:12px 20px;text-decoration:none;white-space:nowrap">
+          <a href="#" data-eml-hdr="1" style="display:flex;align-items:center;gap:10px;padding:12px 20px;text-decoration:none;white-space:nowrap">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#39AC58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 7l-10 6L2 7"></path></svg>
-            <span style="font-size:15px;font-weight:500;color:#25313E"><span data-emltext="1"></span></span>
+            <span style="font-size:15px;font-weight:500;color:#25313E"><span data-emltext-hdr="1"></span></span>
           </a>
         </div>
        
@@ -193,7 +193,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="/" style="display:block"><img src="images/img-03.png" alt="Dr. Jaydeep Dalvi — Expert Urologist &amp; Kidney Specialist" style="height:42px;width:auto;display:block"></a>
       <div style="display:flex;align-items:center;gap:8px">
         <a href="tel:+919225573443" aria-label="Call" style="width:44px;height:44px;border-radius:11px;background:#024377;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></a>
-        <a href="#" data-eml="1" aria-label="Email" style="width:44px;height:44px;border-radius:11px;background:#024377;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 7l-10 6L2 7"></path></svg></a>
+        <a href="#" data-eml-hdr="1" aria-label="Email" style="width:44px;height:44px;border-radius:11px;background:#024377;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 7l-10 6L2 7"></path></svg></a>
         <button aria-label="Menu" data-drawer-open="1" style="width:44px;height:44px;border-radius:50%;background:#39AC58;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
       </div>
     </div>
@@ -400,6 +400,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   var e = EMAIL_USER + String.fromCharCode(64) + EMAIL_DOMAIN;
   document.querySelectorAll('[data-eml]').forEach(function(a){ a.href = 'mailto:' + e; });
   document.querySelectorAll('[data-emltext]').forEach(function(s){ s.textContent = e; });
+  var HDR_EMAIL_USER   = 'gptest';
+  var HDR_EMAIL_DOMAIN = 'gmail.com';
+  var h = HDR_EMAIL_USER + String.fromCharCode(64) + HDR_EMAIL_DOMAIN;
+  document.querySelectorAll('[data-eml-hdr]').forEach(function(a){ a.href = 'mailto:' + h; });
+  document.querySelectorAll('[data-emltext-hdr]').forEach(function(s){ s.textContent = h; });
 })();
 </script>
 
